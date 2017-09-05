@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 set(sources src/particle_filter.cpp src/main.cpp)
 
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(/usr/local/include)
 include_directories(/usr/local/opt/openssl/include)
@@ -18,11 +18,23 @@ link_directories(/usr/local/lib)
 link_directories(/usr/local/opt/openssl/lib)
 link_directories(/usr/local/Cellar/libuv/1.11.0/lib)
 
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if (WIN32)
+	set(_VCPKG_INSTALLED_DIR c:/UnmanagedPrograms/vcpkg/installed)
+	set(VCPKG_TARGET_TRIPLET x86-windows)
+    set(VCPKG_INSTALL ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
+    message("Using vcpkg_install: ${VCPKG_INSTALL}")
+    include_directories(${VCPKG_INSTALL}/include)
+    link_directories(${VCPKG_INSTALL}/lib)
+endif()
 
 add_executable(particle_filter ${sources})
 
-
-target_link_libraries(particle_filter z ssl uv uWS)
-
+if (NOT WIN32)
+    target_link_libraries(particle_filter z ssl uv uWS)
+else()
+    target_link_libraries(particle_filter ssleay32 libuv uWS ws2_32)
+    target_link_libraries(particle_filter optimized zlib )
+	target_link_libraries(particle_filter debug zlibd )
+endif()
